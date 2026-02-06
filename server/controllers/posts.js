@@ -15,7 +15,12 @@ export const getPosts = async (req, res) => {
 export const createPost = async (req, res) => {
   const post = req.body;
 
-  const newPost = new PostMessage(post);
+  const newPost = new PostMessage({
+    ...post,
+    creatorId: req.userId,
+    creatorEmail: req.userEmail,
+    creator: req.userEmail || post.creator,
+  });
 
   try {
     await newPost.save();
@@ -32,16 +37,37 @@ export const updatePost = async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(_id)) 
     return res.status(404).send("No post with this id");
 
-  const updatedPost = await PostMessage.findByIdAndUpdate(_id, { ...post, _id}, { new: true });
+  const existingPost = await PostMessage.findById(_id);
+  if (!existingPost) {
+    return res.status(404).send("No post with this id");
+  }
+
+  if (existingPost.creatorId && existingPost.creatorId !== req.userId) {
+    return res.status(403).json({ message: "Not allowed to edit this post." });
+  }
+
+  const updatedPost = await PostMessage.findByIdAndUpdate(
+    _id,
+    { ...post, _id },
+    { new: true }
+  );
   res.json(updatedPost);
 };
 
 export const deletePost = async (req, res) => {
   const { id } = req.params;
-  const post = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) 
     return res.status(404).send("No post with this id");
+
+  const existingPost = await PostMessage.findById(id);
+  if (!existingPost) {
+    return res.status(404).send("No post with this id");
+  }
+
+  if (existingPost.creatorId && existingPost.creatorId !== req.userId) {
+    return res.status(403).json({ message: "Not allowed to delete this post." });
+  }
 
   await PostMessage.findByIdAndDelete(id);
   res.json( {message: "Post deleted successfully"});
@@ -54,6 +80,9 @@ export const likePost = async (req, res) => {
     return res.status(404).send("No post with this id");
 
   const post = await PostMessage.findById(_id);
+  if (!post) {
+    return res.status(404).send("No post with this id");
+  }
   const updatedPost = await PostMessage.findByIdAndUpdate(
     _id, 
     { likecount: post.likecount + 1 }, 

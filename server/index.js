@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 import dotenv from 'dotenv';
 
 import postRoutes from './routes/posts.js';
+import authRoutes from './routes/auth.js';
 
 const app = express();
 dotenv.config();
@@ -17,6 +18,7 @@ app.use(cors());
 
 // express middleware
 app.use('/posts', postRoutes);
+app.use('/auth', authRoutes);
 
 const PORT = process.env.PORT || 8000;
 

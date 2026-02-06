@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 
 import Post from "./Post";
 
-const Posts = ({setCurrentId}) => {
+const Posts = ({ setCurrentId, user }) => {
   const posts = useSelector((state) => state.posts);
   
   // console.log(posts);
@@ -16,7 +16,7 @@ const Posts = ({setCurrentId}) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
         {posts.map(post => (
-          <Post key={post._id} post={post} setCurrentId={setCurrentId} />
+          <Post key={post._id} post={post} setCurrentId={setCurrentId} user={user} />
         ))} 
       </div>
 

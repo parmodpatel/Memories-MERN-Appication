@@ -3,8 +3,11 @@ import empty from "../images/empty-folder.png";
 import {useDispatch} from 'react-redux'
 import {deletePost, likePost} from '../actions/posts'
 
-const Post = ({ post, setCurrentId }) => {
+const Post = ({ post, setCurrentId, user }) => {
   const dispatch = useDispatch();
+  const isOwner =
+    user?.id === post.creatorId ||
+    (user?.email && (post.creatorEmail || post.creator) === user.email);
   return (
     <div className="max-w-sm w-full bg-white shadow-lg rounded-lg overflow-hidden mx-auto mb-6">
       <div className="relative">
@@ -16,17 +19,19 @@ const Post = ({ post, setCurrentId }) => {
 
         {/* Creator & Time */}
         <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-          <p>{post.creator}</p>
+          <p>{post.creatorEmail || post.creator}</p>
           <p>{new Date(post.createdAt).toLocaleString()}</p>
         </div>
 
         {/* Three Dots */}
-        <div
-          className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded cursor-pointer hover:bg-opacity-70"
-          onClick={() => setCurrentId(post._id)}
-        >
-          ⋮
-        </div>
+        {isOwner && (
+          <div
+            className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded cursor-pointer hover:bg-opacity-70"
+            onClick={() => setCurrentId(post._id)}
+          >
+            ⋮
+          </div>
+        )}
       </div>
 
       <div className="p-4">
@@ -37,12 +42,20 @@ const Post = ({ post, setCurrentId }) => {
         <p className="text-gray-700 mb-4">{post.message}</p>
 
         <div className="flex justify-between">
-          <button className="text-blue-500 hover:text-blue-700" onClick={() => dispatch(likePost(post._id))}>
+          <button
+            className="text-blue-500 hover:text-blue-700"
+            onClick={() => dispatch(likePost(post._id))}
+          >
             Like {post.likecount}
           </button>
-          <button className="text-red-500 hover:text-red-700" onClick={() => dispatch(deletePost(post._id))}>
-            Delete
-          </button>
+          {isOwner && (
+            <button
+              className="text-red-500 hover:text-red-700"
+              onClick={() => dispatch(deletePost(post._id))}
+            >
+              Delete
+            </button>
+          )}
         </div>
       </div>
     </div>

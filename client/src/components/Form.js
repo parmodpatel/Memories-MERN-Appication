@@ -4,9 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createNewPost, updatePost } from "../actions/posts";
 
-const Form = ({currentId,setCurrentId}) => {
+const Form = ({ currentId, setCurrentId, user }) => {
   const [postData, setPostData] = useState({
-    creator: "",
     title: "",
     message: "",
     tags: "",
@@ -19,27 +18,34 @@ const Form = ({currentId,setCurrentId}) => {
     if(post) setPostData(post);
   },[post])
 
+  const normalizeTags = (tagsValue) => {
+    if (Array.isArray(tagsValue)) {
+      return tagsValue;
+    }
+    return tagsValue
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // console.log("Submitting:", postData);
+    const payload = {
+      ...postData,
+      tags: normalizeTags(postData.tags),
+    };
     if (currentId) {
-      dispatch(updatePost(currentId, postData));
+      dispatch(updatePost(currentId, payload));
     } else {
-      // console.log("Dispatched createNewPost");
-      dispatch(createNewPost(postData));
+      dispatch(createNewPost(payload));
     }
     setCurrentId(null);
     setPostData({
-        creator: "",
-        title: "",
-        message: "",
-        tags: "",
-        selectedFile: "",
-      });
-    // if (postData.title.trim() && postData.message.trim()) {
-      
-      
-    // }
+      title: "",
+      message: "",
+      tags: "",
+      selectedFile: "",
+    });
   };
 
   const handleFileUpload = (e) => {
@@ -54,15 +60,13 @@ const Form = ({currentId,setCurrentId}) => {
 
   return (
     <div className="max-w-sm w-full bg-white shadow-lg rounded-lg p-6 mx-auto mb-6">
-      <h2 className="text-xl font-semibold mb-4 text-center">{currentId ? 'Editing' : 'Creating'} a Memory</h2>
+      <h2 className="text-xl font-semibold mb-4 text-center">
+        {currentId ? "Editing" : "Creating"} a Memory
+      </h2>
+      <p className="text-xs text-gray-500 text-center mb-3">
+        Posting as {user?.name || user?.email || "you"}
+      </p>
       <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
-        <input
-          type="text"
-          placeholder="Creator"
-          className="border rounded px-3 py-2"
-          value={postData.creator}
-          onChange={(e) => setPostData({ ...postData, creator: e.target.value })}
-        />
         <input
           type="text"
           placeholder="Title"
