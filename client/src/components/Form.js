@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createNewPost, updatePost } from "../actions/posts";
+import { getCloudinarySignature } from "../api";
 
 const Form = ({ currentId, setCurrentId, user }) => {
   const [postData, setPostData] = useState({
@@ -62,17 +63,19 @@ const Form = ({ currentId, setCurrentId, user }) => {
     setUploading(true);
 
     try {
-      const cloudName = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
-      const uploadPreset = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
-      if (!cloudName || !uploadPreset) {
-        throw new Error(
-          "Cloudinary upload not configured. Missing cloud name or upload preset."
-        );
+      const signatureResponse = await getCloudinarySignature();
+      const { cloudName, apiKey, timestamp, signature } =
+        signatureResponse?.data || {};
+
+      if (!cloudName || !apiKey || !timestamp || !signature) {
+        throw new Error("Cloudinary signature unavailable.");
       }
 
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", uploadPreset);
+      formData.append("api_key", apiKey);
+      formData.append("timestamp", timestamp);
+      formData.append("signature", signature);
 
       const uploadResponse = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,

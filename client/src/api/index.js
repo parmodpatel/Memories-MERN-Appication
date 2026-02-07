@@ -30,3 +30,5 @@ export const signUp = (payload) => API.post("/auth/signup", payload);
 export const signIn = (payload) => API.post("/auth/login", payload);
 
 export const fetchMe = () => API.get("/auth/me");
+
+export const getCloudinarySignature = () => API.get("/cloudinary/sign");

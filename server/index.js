@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 import dotenv from 'dotenv';
 import postRoutes from './routes/posts.js';
 import authRoutes from './routes/auth.js';
+import cloudinaryRoutes from "./routes/cloudinary.js";
 
 const app = express();
 dotenv.config();
@@ -18,6 +19,7 @@ app.use(cors());
 // express middleware
 app.use('/posts', postRoutes);
 app.use('/auth', authRoutes);
+app.use("/cloudinary", cloudinaryRoutes);
 
 const PORT = process.env.PORT || 8000;
 
