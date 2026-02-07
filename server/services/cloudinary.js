@@ -5,7 +5,7 @@ const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } =
 
 if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
   console.warn(
-    "Cloudinary env vars missing. Upload/signature routes will fail until configured."
+    "Cloudinary env vars missing."
   );
 }
 

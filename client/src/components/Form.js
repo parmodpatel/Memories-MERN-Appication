@@ -62,7 +62,7 @@ const Form = ({ currentId, setCurrentId, user }) => {
     setUploading(true);
 
     try {
-      const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+      const cloudName = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
       const uploadPreset = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
       if (!cloudName) {
         throw new Error("Cloudinary upload not configured.");
