@@ -1,5 +1,3 @@
-// client/src/actions/post.js
-
 import * as api from '../api';
 import { 
   fetchAll, 

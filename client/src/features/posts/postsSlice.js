@@ -1,5 +1,3 @@
-// client/src/features/posts/postsSlice.js
-
 import { createSlice } from "@reduxjs/toolkit";
 
 const postsSlice = createSlice({

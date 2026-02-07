@@ -1,37 +1,21 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-
+// import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-const buildTokenOptions = () => {
-  const options = {
-    expiresIn: process.env.JWT_EXPIRES_IN || "1h",
-    algorithm: "HS256",
-  };
-  if (process.env.JWT_ISSUER) {
-    options.issuer = process.env.JWT_ISSUER;
-  }
-  if (process.env.JWT_AUDIENCE) {
-    options.audience = process.env.JWT_AUDIENCE;
-  }
-  return options;
-};
+// const signToken = (user) => {
+//   const secret = process.env.JWT_SECRET;
+//   if (!secret) {
+//     throw new Error("Missing JWT_SECRET");
+//   }
 
-const signToken = (user) => {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("Missing JWT_SECRET");
-  }
-
-  return jwt.sign(
-    {
-      sub: user._id.toString(),
-      email: user.email,
-    },
-    secret,
-    buildTokenOptions()
-  );
-};
+//   return jwt.sign(
+//     {
+//       sub: user._id.toString(),
+//       email: user.email,
+//     },
+//     secret,
+//   );
+// };
 
 const normalizeEmail = (email) => email.trim().toLowerCase();
 
@@ -68,10 +52,10 @@ export const signup = async (req, res) => {
       passwordHash,
     });
 
-    const token = signToken(user);
+    // const token = signToken(user);
 
     return res.status(201).json({
-      token,
+      // token,
       user: {
         id: user._id,
         name: user.name,
@@ -108,10 +92,10 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials." });
     }
 
-    const token = signToken(user);
+    // const token = signToken(user);
 
     return res.status(200).json({
-      token,
+      // token,
       user: {
         id: user._id,
         name: user.name,

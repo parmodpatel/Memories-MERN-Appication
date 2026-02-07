@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { signUp } from "../api";
 
 const Signup = ({ onSignup, onSwitch }) => {

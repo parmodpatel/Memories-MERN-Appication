@@ -1,13 +1,10 @@
-// client/src/App.js
-
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch } from 'react-redux';
 import { getPosts } from './actions/posts';
-
 import Posts from "./components/Posts";
 import Form from "./components/Form";
 import Auth from "./components/Auth";
-import memories from "./images/memories.png";
+import memories from './images/memories.png'
 import "./index.css";
 
 const App = () => {
@@ -45,7 +42,7 @@ const App = () => {
     <div className="max-w-7xl mx-auto p-4 ">
       <div className="flex items-center justify-between mt-2">
         <div className="text-sm text-gray-500">
-          Signed in as <span className="font-semibold text-gray-700">{user?.email}</span>
+          Signed in as <span className="font-semibold text-gray-700">{user?.name}</span>
         </div>
         <button
           className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 transition"

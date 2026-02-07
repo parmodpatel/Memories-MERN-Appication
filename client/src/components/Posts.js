@@ -1,14 +1,8 @@
-// client/src/components/Posts.js
-
-import React from "react";
 import { useSelector } from "react-redux";
-
 import Post from "./Post";
 
 const Posts = ({ setCurrentId, user }) => {
   const posts = useSelector((state) => state.posts);
-  
-  // console.log(posts);
 
   return (
     <div className="flex flex-col items-center space-y-2">
