@@ -64,8 +64,10 @@ const Form = ({ currentId, setCurrentId, user }) => {
     try {
       const cloudName = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
       const uploadPreset = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
-      if (!cloudName) {
-        throw new Error("Cloudinary upload not configured.");
+      if (!cloudName || !uploadPreset) {
+        throw new Error(
+          "Cloudinary upload not configured. Missing cloud name or upload preset."
+        );
       }
 
       const formData = new FormData();
@@ -81,16 +83,23 @@ const Form = ({ currentId, setCurrentId, user }) => {
       );
 
       let uploadData = null;
+      let uploadText = "";
       try {
         uploadData = await uploadResponse.json();
       } catch (parseError) {
         uploadData = null;
+        try {
+          uploadText = await uploadResponse.text();
+        } catch (textError) {
+          uploadText = "";
+        }
       }
       if (!uploadResponse.ok) {
         const message =
           uploadData?.error?.message ||
           uploadData?.message ||
-          "Upload failed.";
+          uploadText ||
+          `Upload failed (status ${uploadResponse.status}).`;
         throw new Error(message);
       }
 
