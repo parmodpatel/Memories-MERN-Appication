@@ -33,6 +33,7 @@ export const getUploadSignature = async (req, res) => {
       folder,
     });
   } catch (error) {
-    return res.status(500).json({ message: "Unable to sign upload." });
+    const message = error?.message || "Unable to sign upload.";
+    return res.status(500).json({ message });
   }
 };

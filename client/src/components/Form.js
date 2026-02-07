@@ -64,6 +64,9 @@ const Form = ({ currentId, setCurrentId, user }) => {
 
     try {
       const { data } = await getUploadSignature();
+      if (!data?.signature || !data?.timestamp || !data?.apiKey || !data?.cloudName) {
+        throw new Error("Upload signature missing or invalid.");
+      }
       const formData = new FormData();
       formData.append("file", file);
       formData.append("api_key", data.apiKey);
@@ -79,20 +82,32 @@ const Form = ({ currentId, setCurrentId, user }) => {
         }
       );
 
-      if (!uploadResponse.ok) {
-        throw new Error("Upload failed");
+      let uploadData = null;
+      try {
+        uploadData = await uploadResponse.json();
+      } catch (parseError) {
+        uploadData = null;
       }
-
-      const uploadData = await uploadResponse.json();
+      if (!uploadResponse.ok) {
+        const message =
+          uploadData?.error?.message ||
+          uploadData?.message ||
+          "Upload failed.";
+        throw new Error(message);
+      }
 
       setPostData((prev) => ({
         ...prev,
-        imageUrl: uploadData.secure_url,
-        imagePublicId: uploadData.public_id,
+        imageUrl: uploadData?.secure_url || "",
+        imagePublicId: uploadData?.public_id || "",
         selectedFile: "",
       }));
     } catch (error) {
-      setUploadError("Unable to upload image. Try again.");
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unable to upload image. Try again.";
+      setUploadError(message);
     } finally {
       setUploading(false);
     }
