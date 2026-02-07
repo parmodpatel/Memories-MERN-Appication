@@ -63,14 +63,14 @@ const Form = ({ currentId, setCurrentId, user }) => {
 
     try {
       const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-      // const uploadPreset = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
+      const uploadPreset = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
       if (!cloudName) {
         throw new Error("Cloudinary upload not configured.");
       }
 
       const formData = new FormData();
       formData.append("file", file);
-      // formData.append("upload_preset", uploadPreset);
+      formData.append("upload_preset", uploadPreset);
 
       const uploadResponse = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
