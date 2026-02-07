@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import PostMessage from "../models/postMessage.js";
+import cloudinary from "../services/cloudinary.js";
 
 export const getPosts = async (req, res) => {
   try {
@@ -65,6 +66,14 @@ export const deletePost = async (req, res) => {
 
   if (existingPost.creatorId && existingPost.creatorId !== req.userId) {
     return res.status(403).json({ message: "Not allowed to delete this post." });
+  }
+
+  if (existingPost.imagePublicId) {
+    try {
+      await cloudinary.uploader.destroy(existingPost.imagePublicId);
+    } catch (error) {
+      console.error("Cloudinary delete failed:", error.message);
+    }
   }
 
   await PostMessage.findByIdAndDelete(id);

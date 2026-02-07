@@ -8,6 +8,8 @@ const postSchema = mongoose.Schema({
   creatorEmail: String,
   tags: [String],
   selectedFile: String,
+  imageUrl: String,
+  imagePublicId: String,
   likecount: {
     type: Number,
     default: 0

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const API = axios.create({
   baseURL: API_BASE_URL,
@@ -30,3 +30,5 @@ export const signUp = (payload) => API.post("/auth/signup", payload);
 export const signIn = (payload) => API.post("/auth/login", payload);
 
 export const fetchMe = () => API.get("/auth/me");
+
+export const getUploadSignature = () => API.post("/uploads/signature");

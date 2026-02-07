@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createNewPost, updatePost } from "../actions/posts";
+import { getUploadSignature } from "../api";
 
 const Form = ({ currentId, setCurrentId, user }) => {
   const [postData, setPostData] = useState({
@@ -8,13 +9,17 @@ const Form = ({ currentId, setCurrentId, user }) => {
     message: "",
     tags: "",
     selectedFile: "",
+    imageUrl: "",
+    imagePublicId: "",
   });
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const post = useSelector((state) => currentId ? state.posts.find((p) => p._id === currentId): null);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if(post) setPostData(post);
-  },[post])
+    if (post) setPostData(post);
+  }, [post]);
 
   const normalizeTags = (tagsValue) => {
     if (Array.isArray(tagsValue)) {
@@ -25,6 +30,8 @@ const Form = ({ currentId, setCurrentId, user }) => {
       .map((tag) => tag.trim())
       .filter(Boolean);
   };
+
+  const canSubmit = useMemo(() => !uploading, [uploading]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -43,17 +50,52 @@ const Form = ({ currentId, setCurrentId, user }) => {
       message: "",
       tags: "",
       selectedFile: "",
+      imageUrl: "",
+      imagePublicId: "",
     });
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    const reader = new FileReader();
-    // console.log("Success.",postData)
-    reader.onloadend = () => {
-      setPostData({ ...postData, selectedFile: reader.result });
-    };
-    if (file) reader.readAsDataURL(file);
+    if (!file) return;
+
+    setUploadError("");
+    setUploading(true);
+
+    try {
+      const { data } = await getUploadSignature();
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", data.apiKey);
+      formData.append("timestamp", data.timestamp);
+      formData.append("signature", data.signature);
+      formData.append("folder", data.folder);
+
+      const uploadResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${data.cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!uploadResponse.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const uploadData = await uploadResponse.json();
+
+      setPostData((prev) => ({
+        ...prev,
+        imageUrl: uploadData.secure_url,
+        imagePublicId: uploadData.public_id,
+        selectedFile: "",
+      }));
+    } catch (error) {
+      setUploadError("Unable to upload image. Try again.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -82,7 +124,7 @@ const Form = ({ currentId, setCurrentId, user }) => {
           type="text"
           placeholder="Tags (comma separated)"
           className="border rounded px-3 py-2"
-          value={postData.tags}
+          value={Array.isArray(postData.tags) ? postData.tags.join(", ") : postData.tags}
           onChange={(e) => setPostData({ ...postData, tags: e.target.value })}
         />
         <input
@@ -91,8 +133,20 @@ const Form = ({ currentId, setCurrentId, user }) => {
           onChange={handleFileUpload}
           className="border rounded px-3 py-2"
         />
+        {uploading && (
+          <p className="text-xs text-blue-600">Uploading image...</p>
+        )}
+        {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+        {postData.imageUrl && (
+          <img
+            src={postData.imageUrl}
+            alt="Preview"
+            className="w-full h-40 object-cover rounded"
+          />
+        )}
         <button
           type="submit"
+          disabled={!canSubmit}
           className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >
           Submit
