@@ -4,7 +4,14 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
 const API = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true,
+});
+
+API.interceptors.request.use((config) => {
+  const auth = JSON.parse(localStorage.getItem("auth") || "null");
+  if (auth?.token) {
+    config.headers.Authorization = `Bearer ${auth.token}`;
+  }
+  return config;
 });
 
 export const fetchPosts = () => API.get("/posts");
@@ -23,7 +30,5 @@ export const signUp = (payload) => API.post("/auth/signup", payload);
 export const signIn = (payload) => API.post("/auth/login", payload);
 
 export const fetchMe = () => API.get("/auth/me");
-
-export const logout = () => API.post("/auth/logout");
 
 export const getCloudinarySignature = () => API.get("/cloudinary/sign");

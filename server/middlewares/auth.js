@@ -1,7 +1,5 @@
 import jwt from "jsonwebtoken";
 
-const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME || "auth_token";
-
 const buildVerifyOptions = () => {
   const options = {
     algorithms: ["HS256"],
@@ -10,13 +8,12 @@ const buildVerifyOptions = () => {
 };
 
 const auth = (req, res, next) => {
-  const cookieToken = req.cookies?.[AUTH_COOKIE_NAME];
   const authHeader = req.headers.authorization || "";
-  const headerToken = authHeader.startsWith("Bearer ")
-    ? authHeader.replace("Bearer ", "").trim()
-    : "";
-  const token = cookieToken || headerToken;
+  if (!authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Missing authorization token." });
+  }
 
+  const token = authHeader.replace("Bearer ", "").trim();
   if (!token) {
     return res.status(401).json({ message: "Missing authorization token." });
   }

@@ -68,7 +68,7 @@ const Signup = ({ onSignup, onSwitch }) => {
         password: form.password,
         confirmPassword: form.confirmPassword,
       });
-      onSignup({ user: data.user });
+      onSignup({ token: data.token, user: data.user });
     } catch (err) {
       setError(err.response?.data?.message || "Unable to create account.");
     } finally {
