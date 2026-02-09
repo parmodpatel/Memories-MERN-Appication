@@ -47,7 +47,7 @@ const Login = ({ onLogin, onSwitch }) => {
         email: form.email.trim(),
         password: form.password,
       });
-      onLogin({ token: data.token, user: data.user });
+      onLogin({ user: data.user });
     } catch (err) {
       setError(err.response?.data?.message || "Unable to sign in.");
     } finally {

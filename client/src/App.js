@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch } from 'react-redux';
 import { getPosts } from './actions/posts';
+import { fetchMe, logout } from "./api";
 import Posts from "./components/Posts";
 import Form from "./components/Form";
 import Auth from "./components/Auth";
@@ -9,14 +10,37 @@ import "./index.css";
 
 const App = () => {
   const [currentId, setCurrentId] = useState(null);
-  const [auth, setAuth] = useState(() => {
-    const stored = localStorage.getItem("auth");
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [auth, setAuth] = useState(null);
+  const [authResolved, setAuthResolved] = useState(false);
   const dispatch = useDispatch();
 
-  const isAuthed = Boolean(auth?.token);
+  const isAuthed = Boolean(auth?.user);
   const user = useMemo(() => auth?.user || null, [auth]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadMe = async () => {
+      try {
+        const { data } = await fetchMe();
+        if (isMounted && data) {
+          setAuth({ user: data });
+        }
+      } catch (error) {
+        if (isMounted) {
+          setAuth(null);
+        }
+      } finally {
+        if (isMounted) {
+          setAuthResolved(true);
+        }
+      }
+    };
+
+    loadMe();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (isAuthed) {
@@ -26,13 +50,16 @@ const App = () => {
 
   const handleLogin = (nextAuth) => {
     setAuth(nextAuth);
-    localStorage.setItem("auth", JSON.stringify(nextAuth));
   };
 
   const handleLogout = () => {
     setAuth(null);
-    localStorage.removeItem("auth");
+    logout().catch(() => {});
   };
+
+  if (!authResolved) {
+    return <div className="max-w-7xl mx-auto p-4">Loading...</div>;
+  }
 
   if (!isAuthed) {
     return <Auth onAuth={handleLogin} />;

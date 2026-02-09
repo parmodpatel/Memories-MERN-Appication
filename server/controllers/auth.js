@@ -2,12 +2,29 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME || "auth_token";
+
 const buildTokenOptions = () => {
   const options = {
     expiresIn: process.env.JWT_EXPIRES_IN || "1h",
     algorithm: "HS256",
   };
   return options;
+};
+
+const buildCookieOptions = () => ({
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+});
+
+const setAuthCookie = (res, token) => {
+  res.cookie(AUTH_COOKIE_NAME, token, buildCookieOptions());
+};
+
+const clearAuthCookie = (res) => {
+  res.clearCookie(AUTH_COOKIE_NAME, buildCookieOptions());
 };
 
 const signToken = (user) => {
@@ -62,9 +79,9 @@ export const signup = async (req, res) => {
     });
 
     const token = signToken(user);
+    setAuthCookie(res, token);
 
     return res.status(201).json({
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -102,9 +119,9 @@ export const login = async (req, res) => {
     }
 
     const token = signToken(user);
+    setAuthCookie(res, token);
 
     return res.status(200).json({
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -138,4 +155,9 @@ export const me = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ message: "Unable to fetch profile." });
   }
+};
+
+export const logout = async (_req, res) => {
+  clearAuthCookie(res);
+  return res.status(204).send();
 };
