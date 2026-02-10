@@ -10,6 +10,44 @@ const buildTokenOptions = () => {
   return options;
 };
 
+const parseDurationToMs = (value) => {
+  if (!value) {
+    return 60 * 60 * 1000;
+  }
+
+  const raw = String(value).trim();
+  if (/^\d+$/.test(raw)) {
+    return Number(raw) * 1000;
+  }
+
+  const match = raw.match(/^(\d+)([smhd])$/i);
+  if (!match) {
+    return 60 * 60 * 1000;
+  }
+
+  const amount = Number(match[1]);
+  const unit = match[2].toLowerCase();
+  const unitMs = {
+    s: 1000,
+    m: 60 * 1000,
+    h: 60 * 60 * 1000,
+    d: 24 * 60 * 60 * 1000,
+  };
+
+  return amount * (unitMs[unit] || 60 * 60 * 1000);
+};
+
+const buildAuthCookieOptions = () => {
+  const isProd = process.env.NODE_ENV === "production";
+  return {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    path: "/",
+    maxAge: parseDurationToMs(process.env.JWT_EXPIRES_IN || "1h"),
+  };
+};
+
 const signToken = (user) => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
@@ -62,9 +100,9 @@ export const signup = async (req, res) => {
     });
 
     const token = signToken(user);
+    res.cookie("auth_token", token, buildAuthCookieOptions());
 
     return res.status(201).json({
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -102,9 +140,9 @@ export const login = async (req, res) => {
     }
 
     const token = signToken(user);
+    res.cookie("auth_token", token, buildAuthCookieOptions());
 
     return res.status(200).json({
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -138,4 +176,15 @@ export const me = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ message: "Unable to fetch profile." });
   }
+};
+
+export const logout = async (_req, res) => {
+  const isProd = process.env.NODE_ENV === "production";
+  res.clearCookie("auth_token", {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    path: "/",
+  });
+  return res.status(204).send();
 };

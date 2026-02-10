@@ -8,12 +8,13 @@ const buildVerifyOptions = () => {
 };
 
 const auth = (req, res, next) => {
+  const cookieToken = req.cookies?.auth_token;
   const authHeader = req.headers.authorization || "";
-  if (!authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Missing authorization token." });
-  }
+  const headerToken = authHeader.startsWith("Bearer ")
+    ? authHeader.replace("Bearer ", "").trim()
+    : "";
 
-  const token = authHeader.replace("Bearer ", "").trim();
+  const token = cookieToken || headerToken;
   if (!token) {
     return res.status(401).json({ message: "Missing authorization token." });
   }

@@ -6,17 +6,43 @@ import Form from "./components/Form";
 import Auth from "./components/Auth";
 import memories from './images/memories.png'
 import "./index.css";
+import { fetchMe, signOut } from "./api";
 
 const App = () => {
   const [currentId, setCurrentId] = useState(null);
-  const [auth, setAuth] = useState(() => {
-    const stored = localStorage.getItem("auth");
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [auth, setAuth] = useState(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const dispatch = useDispatch();
 
-  const isAuthed = Boolean(auth?.token);
+  const isAuthed = Boolean(auth?.user);
   const user = useMemo(() => auth?.user || null, [auth]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSession = async () => {
+      try {
+        const { data } = await fetchMe();
+        if (isMounted) {
+          setAuth({ user: data });
+        }
+      } catch (error) {
+        if (isMounted) {
+          setAuth(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingAuth(false);
+        }
+      }
+    };
+
+    loadSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (isAuthed) {
@@ -25,14 +51,25 @@ const App = () => {
   }, [currentId, dispatch, isAuthed]);
 
   const handleLogin = (nextAuth) => {
-    setAuth(nextAuth);
-    localStorage.setItem("auth", JSON.stringify(nextAuth));
+    setAuth({ user: nextAuth.user });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      // best-effort logout
+    }
     setAuth(null);
-    localStorage.removeItem("auth");
   };
+
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Checking your session...
+      </div>
+    );
+  }
 
   if (!isAuthed) {
     return <Auth onAuth={handleLogin} />;

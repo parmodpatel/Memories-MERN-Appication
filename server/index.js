@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 import dotenv from 'dotenv';
 import postRoutes from './routes/posts.js';
 import authRoutes from './routes/auth.js';
@@ -12,9 +13,15 @@ dotenv.config();
 
 app.use(bodyParser.json({ limit: '30mb', extended: true}));
 app.use(bodyParser.urlencoded({ limit: '30mb', extended: true}));
+app.use(cookieParser());
 
-// Allow all origins (development only)
-app.use(cors());
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:3000";
+app.use(
+  cors({
+    origin: CLIENT_ORIGIN,
+    credentials: true,
+  })
+);
 
 // express middleware
 app.use('/posts', postRoutes);
